@@ -35,6 +35,20 @@ extern "C" {
 #include "RIC-ReportStyle-Item.h"
 }
 
+const char* performance_measurements[] = {
+  "DRB.RlcSduTransmittedVolumeDL",
+  "DRB.RlcSduTransmittedVolumeUL",
+  "DRB.PerDataVolumeDLDist.Bin",
+  "DRB.PerDataVolumeULDist.Bin",
+  "DRB.RlcPacketDropRateDLDist",
+  "DRB.PacketLossRateULDist",
+  "L1M.DL-SS-RSRP.SSB",
+  "L1M.DL-SS-SINR.SSB",
+  "L1M.UL-SRS-RSRP"
+  };
+
+int NUMBER_MEASUREMENTS = 9;
+
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("KpmFunctionDescription");
@@ -82,7 +96,7 @@ KpmFunctionDescription::Encode (E2SM_KPM_RANfunction_Description_t *descriptor)
 
     if (encodedMsg.encoded < 0)
       {
-        printf("I am Hereeeeeeeeeeeeeeeeeeeeeeee");
+        printf("Error");
         
         NS_FATAL_ERROR ("Error during the encoding of the RIC Indication Header, errno: "
                         << strerror (errno) << ", failed_type " << encodedMsg.failed_type->name
@@ -114,86 +128,91 @@ OCTET_STRING_t KpmFunctionDescription::cp_str_to_ba(const char* str)
     return asn;
 }
 
+// Update e2ap v2
 void
 KpmFunctionDescription::FillAndEncodeKpmFunctionDescription (
     E2SM_KPM_RANfunction_Description_t *ranfunc_desc)
 {
-  std::string shortNameBuffer = "ORAN-WG3-KPM";
-  constexpr long STYLE_4_RIC_SERVICE_REPORT =4;
-  constexpr long FORMAT_1_RIC_EVENT_TRIGGER =0;
-  constexpr long STYLE_1_RIC_EVENT_TRIGGER =1;  //constexpr -> enum
-  constexpr long FORMAT_1_INDICATION_HEADER =0;
-  constexpr long FORMAT_3_INDICATION_MESSAGE =2;
-  //KPM monitor
-  uint8_t *descriptionBuffer = (uint8_t *) "KPM";
-  uint8_t *oidBuffer = (uint8_t *) "OID12"; // this is optional, dummy value
+  
+  uint8_t* short_name = (uint8_t*)"ORAN-E2SM-KPM";
+  uint8_t* func_desc = (uint8_t*)"KPM Monitor";
+  uint8_t* e2sm_odi = (uint8_t*)"OID123";
 
-  Ptr<OctetString> shortName = Create<OctetString> (shortNameBuffer, shortNameBuffer.size ());
+  LOG_I("short_name: %s, func_desc: %s, e2sm_odi: %s", short_name, func_desc, e2sm_odi);
+  ASN_STRUCT_RESET(asn_DEF_E2SM_KPM_RANfunction_Description, ranfunc_desc);
+  
+  ranfunc_desc->ranFunction_Name.ranFunction_ShortName.size = strlen((char*)short_name);
+  ranfunc_desc->ranFunction_Name.ranFunction_ShortName.buf =
+      (uint8_t*)calloc(strlen((char*)short_name), sizeof(uint8_t));
+  memcpy(ranfunc_desc->ranFunction_Name.ranFunction_ShortName.buf, short_name,
+         ranfunc_desc->ranFunction_Name.ranFunction_ShortName.size);
 
-  ranfunc_desc->ranFunction_Name.ranFunction_ShortName = shortName->GetValue ();
-
-  long *inst = (long *) calloc (1, sizeof (long));
-
-  //  ranfunc_desc->ranFunction_Name.ranFunction_Description = (OCTET_STRING_t*)calloc(1, sizeof(OCTET_STRING_t));
   ranfunc_desc->ranFunction_Name.ranFunction_Description.buf =
-      (uint8_t *) calloc (1, strlen ((char *) descriptionBuffer));
-  memcpy (ranfunc_desc->ranFunction_Name.ranFunction_Description.buf, descriptionBuffer,
-          strlen ((char *) descriptionBuffer));
-  ranfunc_desc->ranFunction_Name.ranFunction_Description.size = strlen ((char *) descriptionBuffer);
-  ranfunc_desc->ranFunction_Name.ranFunction_Instance = inst;
+      (uint8_t*)calloc(1, strlen((char*)func_desc));
+  memcpy(ranfunc_desc->ranFunction_Name.ranFunction_Description.buf, func_desc,
+        strlen((char*)func_desc));
+  ranfunc_desc->ranFunction_Name.ranFunction_Description.size = strlen((char*)func_desc);
+  ranfunc_desc->ranFunction_Name.ranFunction_Instance = (long *)calloc(1, sizeof(long));
+  *ranfunc_desc->ranFunction_Name.ranFunction_Instance = 1;
 
-  //  ranfunc_desc->ranFunction_Name.ranFunction_E2SM_OID = (OCTET_STRING_t*)calloc(1, sizeof(OCTET_STRING_t));
   ranfunc_desc->ranFunction_Name.ranFunction_E2SM_OID.buf =
-      (uint8_t *) calloc (1, strlen ((char *) oidBuffer));
-  memcpy (ranfunc_desc->ranFunction_Name.ranFunction_E2SM_OID.buf, oidBuffer,
-          strlen ((char *) oidBuffer));
-  ranfunc_desc->ranFunction_Name.ranFunction_E2SM_OID.size = strlen ((char *) oidBuffer);
+  (uint8_t*)calloc(1, strlen((char*)e2sm_odi));
+  memcpy(ranfunc_desc->ranFunction_Name.ranFunction_E2SM_OID.buf, e2sm_odi,
+     strlen((char*)e2sm_odi));
+  ranfunc_desc->ranFunction_Name.ranFunction_E2SM_OID.size = strlen((char*)e2sm_odi);
 
-  RIC_EventTriggerStyle_Item_t *trigger_style =
-      (RIC_EventTriggerStyle_Item_t *) calloc (1, sizeof (RIC_EventTriggerStyle_Item_t));
-  trigger_style->ric_EventTriggerStyle_Type = STYLE_1_RIC_EVENT_TRIGGER;
+  LOG_I("Initialize event trigger style list structure");
+
+
   //Periodic report
-  uint8_t *eventTriggerStyleNameBuffer = (uint8_t *) "PR";
-  //  trigger_style->ric_EventTriggerStyle_Name = (OCTET_STRING_t*)calloc(1, sizeof(OCTET_STRING_t));
-  trigger_style->ric_EventTriggerStyle_Name.buf =
-      (uint8_t *) calloc (1, strlen ((char *) eventTriggerStyleNameBuffer));
-  memcpy (trigger_style->ric_EventTriggerStyle_Name.buf, eventTriggerStyleNameBuffer,
-          strlen ((char *) eventTriggerStyleNameBuffer));
-  trigger_style->ric_EventTriggerStyle_Name.size = strlen ((char *) eventTriggerStyleNameBuffer);
-  trigger_style->ric_EventTriggerFormat_Type = FORMAT_1_RIC_EVENT_TRIGGER;
+  RIC_EventTriggerStyle_Item_t* trigger_style =
+  (RIC_EventTriggerStyle_Item_t*)calloc(1, sizeof(RIC_EventTriggerStyle_Item_t));
+  trigger_style->ric_EventTriggerStyle_Type = 1;
+  uint8_t* style_name = (uint8_t*)"Periodic Report";
+  trigger_style->ric_EventTriggerStyle_Name.buf = (uint8_t*)calloc(1, strlen((char*)style_name));
+  memcpy(trigger_style->ric_EventTriggerStyle_Name.buf, style_name, strlen((char*)style_name));
+  trigger_style->ric_EventTriggerStyle_Name.size = strlen((char*)style_name);
+  trigger_style->ric_EventTriggerFormat_Type = 1;
 
   ranfunc_desc->ric_EventTriggerStyle_List =
-      (E2SM_KPM_RANfunction_Description::
-           E2SM_KPM_RANfunction_Description__ric_EventTriggerStyle_List *)
-          calloc (1, sizeof (E2SM_KPM_RANfunction_Description::
-                                 E2SM_KPM_RANfunction_Description__ric_EventTriggerStyle_List));
+    (E2SM_KPM_RANfunction_Description::E2SM_KPM_RANfunction_Description__ric_EventTriggerStyle_List*)
+        calloc(1, sizeof(E2SM_KPM_RANfunction_Description::E2SM_KPM_RANfunction_Description__ric_EventTriggerStyle_List));
 
-  ASN_SEQUENCE_ADD (&ranfunc_desc->ric_EventTriggerStyle_List->list, trigger_style);
+  int ret = ASN_SEQUENCE_ADD(&ranfunc_desc->ric_EventTriggerStyle_List->list, trigger_style);
 
-  RIC_ReportStyle_Item_t *report_style =
-      (RIC_ReportStyle_Item_t *) calloc (1, sizeof (RIC_ReportStyle_Item_t));
-  report_style->ric_ReportStyle_Type = STYLE_4_RIC_SERVICE_REPORT;
+  LOG_I("Initialize report style structure");
+
+  MeasurementInfo_Action_List_t* measInfo_Action_List =
+      (MeasurementInfo_Action_List_t*)calloc(1, sizeof(MeasurementInfo_Action_List_t));
+  // To be update for measurement
+  for (int i = 0; i < NUMBER_MEASUREMENTS; i++) {  //for (int i = 0; i < NUMBER_MEASUREMENTS; i++) {
+    uint8_t* metrics = (uint8_t *)performance_measurements[i];
+    MeasurementInfo_Action_Item_t* measItem =(MeasurementInfo_Action_Item_t*)calloc(1, sizeof(MeasurementInfo_Action_Item_t));
+    measItem->measName.buf = (uint8_t*)calloc(1, strlen((char*)metrics));
+    memcpy(measItem->measName.buf, metrics, strlen((char*)metrics));
+    
+    measItem->measName.size = strlen((char*)metrics);
+
+    measItem->measID = (MeasurementTypeID_t*)calloc(1, sizeof(MeasurementTypeID_t));
+    *measItem->measID = i+1;
+
+    ASN_SEQUENCE_ADD(&measInfo_Action_List->list, measItem);
+  }
+
+  RIC_ReportStyle_Item_t *report_style = (RIC_ReportStyle_Item_t *) calloc (1, sizeof (RIC_ReportStyle_Item_t));
+  report_style->ric_ReportStyle_Type = 4;
 // O-CU-CP Measurement Container for the EPC connected deployment
-  uint8_t *reportStyleNameBuffer =
-      (uint8_t *) "O-CU-CP";
-
-  //  report_style->ric_ReportStyle_Name = (OCTET_STRING_t*)calloc(1, sizeof(OCTET_STRING_t));
-  report_style->ric_ReportStyle_Name.buf =
-      (uint8_t *) calloc (1, strlen ((char *) reportStyleNameBuffer));
-  memcpy (report_style->ric_ReportStyle_Name.buf, reportStyleNameBuffer,
-          strlen ((char *) reportStyleNameBuffer));
+  uint8_t *reportStyleNameBuffer = (uint8_t *) "O-CU-CP";
+  report_style->ric_ReportStyle_Name.buf = (uint8_t *) calloc (1, strlen ((char *) reportStyleNameBuffer));
+  memcpy (report_style->ric_ReportStyle_Name.buf, reportStyleNameBuffer, strlen ((char *) reportStyleNameBuffer));
   report_style->ric_ReportStyle_Name.size = strlen ((char *) reportStyleNameBuffer);
-report_style->ric_IndicationHeaderFormat_Type = FORMAT_1_INDICATION_HEADER;  
-report_style->ric_IndicationMessageFormat_Type = FORMAT_3_INDICATION_MESSAGE;
-/*Added RICACtionFormat*/
-report_style->ric_ActionFormat_Type = 3 ; 
-MeasurementInfo_Action_Item * meas_item = (MeasurementInfo_Action_Item *)calloc(1, sizeof(MeasurementInfo_Action_Item));
+  report_style->ric_IndicationHeaderFormat_Type = 1;  
+  report_style->ric_IndicationMessageFormat_Type = 3;
+  report_style->ric_ActionFormat_Type = 4; 
+  report_style->measInfo_Action_List = *measInfo_Action_List;
 
-  const char act[] = "DRB.RlcSduDelayDl";
 
-meas_item->measName = cp_str_to_ba(act);
 
-  ASN_SEQUENCE_ADD (&report_style->measInfo_Action_List.list, meas_item);
 
  ranfunc_desc->ric_ReportStyle_List =
        (E2SM_KPM_RANfunction_Description::E2SM_KPM_RANfunction_Description__ric_ReportStyle_List *)
