@@ -138,7 +138,7 @@ KpmFunctionDescription::FillAndEncodeKpmFunctionDescription (
   uint8_t* func_desc = (uint8_t*)"KPM Monitor";
   uint8_t* e2sm_odi = (uint8_t*)"OID123";
 
-  LOG_I("short_name: %s, func_desc: %s, e2sm_odi: %s", short_name, func_desc, e2sm_odi);
+  //LOG_INFO("short_name: %s, func_desc: %s, e2sm_odi: %s", short_name, func_desc, e2sm_odi);
   ASN_STRUCT_RESET(asn_DEF_E2SM_KPM_RANfunction_Description, ranfunc_desc);
   
   ranfunc_desc->ranFunction_Name.ranFunction_ShortName.size = strlen((char*)short_name);
@@ -161,7 +161,7 @@ KpmFunctionDescription::FillAndEncodeKpmFunctionDescription (
      strlen((char*)e2sm_odi));
   ranfunc_desc->ranFunction_Name.ranFunction_E2SM_OID.size = strlen((char*)e2sm_odi);
 
-  LOG_I("Initialize event trigger style list structure");
+  //LOG_I("Initialize event trigger style list structure");
 
 
   //Periodic report
@@ -178,9 +178,9 @@ KpmFunctionDescription::FillAndEncodeKpmFunctionDescription (
     (E2SM_KPM_RANfunction_Description::E2SM_KPM_RANfunction_Description__ric_EventTriggerStyle_List*)
         calloc(1, sizeof(E2SM_KPM_RANfunction_Description::E2SM_KPM_RANfunction_Description__ric_EventTriggerStyle_List));
 
-  int ret = ASN_SEQUENCE_ADD(&ranfunc_desc->ric_EventTriggerStyle_List->list, trigger_style);
+  ASN_SEQUENCE_ADD(&ranfunc_desc->ric_EventTriggerStyle_List->list, trigger_style);
 
-  LOG_I("Initialize report style structure");
+  //LOG_I("Initialize report style structure");
 
   MeasurementInfo_Action_List_t* measInfo_Action_List =
       (MeasurementInfo_Action_List_t*)calloc(1, sizeof(MeasurementInfo_Action_List_t));

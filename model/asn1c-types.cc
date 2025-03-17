@@ -155,7 +155,9 @@ NrCellId::GetPointer ()
 
 Snssai::Snssai (std::string sst)
 {
-  m_sNssai = (SNSSAI_t *) calloc (1, sizeof (SNSSAI_t));
+  //m_sNssai = (SNSSAI_t *) calloc (1, sizeof (SNSSAI_t));
+  m_sNssai = (S_NSSAI_t *) calloc (1, sizeof (S_NSSAI_t));
+
   m_sst = (OCTET_STRING_t *) calloc (1, sizeof (OCTET_STRING_t));
   m_sst->buf = (uint8_t *) calloc (1, sst.size ());
   m_sst->size = sst.size ();
@@ -174,7 +176,8 @@ Snssai::Snssai (std::string sst, std::string sd) : Snssai (sst)
 Snssai::~Snssai ()
 {
   if (m_sNssai != NULL)
-    ASN_STRUCT_FREE (asn_DEF_SNSSAI, m_sNssai);
+    //ASN_STRUCT_FREE (asn_DEF_SNSSAI, m_sNssai);
+    ASN_STRUCT_FREE (asn_DEF_S_NSSAI, m_sNssai);
 
   // if (m_sst != NULL)
   //   ASN_STRUCT_FREE (asn_DEF_OCTET_STRING, m_sst);
@@ -182,13 +185,15 @@ Snssai::~Snssai ()
   //   ASN_STRUCT_FREE (asn_DEF_OCTET_STRING, m_sd);
 }
 
-SNSSAI_t *
+//SNSSAI_t *
+S_NSSAI_t *
 Snssai::GetPointer ()
 {
   return m_sNssai;
 }
 
-SNSSAI_t
+//SNSSAI_t
+S_NSSAI_t
 Snssai::GetValue ()
 {
   return *m_sNssai;

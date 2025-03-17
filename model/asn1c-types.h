@@ -36,7 +36,7 @@ extern "C" {
   #include "OCTET_STRING.h"
   #include "BIT_STRING.h"
   #include "PM-Info-Item.h"
-  #include "SNSSAI.h"
+  #include "S-NSSAI.h"
   #include "RRCEvent.h"
   #include "L3-RRC-Measurements.h"
   #include "ServingCellMeasurements.h"
@@ -120,13 +120,17 @@ public:
   Snssai (std::string sst);
   Snssai (std::string sst, std::string sd);
   ~Snssai ();
-  SNSSAI_t *GetPointer ();
-  SNSSAI_t GetValue ();
+  S_NSSAI_t *GetPointer ();
+  S_NSSAI_t GetValue ();
+  //SNSSAI_t *GetPointer ();
+  //SNSSAI_t GetValue ();
 
 private:
   OCTET_STRING_t *m_sst;
   OCTET_STRING_t *m_sd;
-  SNSSAI_t *m_sNssai;
+  //SNSSAI_t *m_sNssai;
+  S_NSSAI_t *m_sNssai;
+
 };
 
 /**

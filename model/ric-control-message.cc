@@ -215,10 +215,12 @@ RicControlMessage::DecodeRicControlMessage(E2AP_PDU_t* pdu)
                         NS_LOG_DEBUG("[E2SM] RIC Control ack value: ACK");
                         break;
                     }
+                    /*
                     case RICcontrolAckRequest_nAck: {
                         NS_LOG_DEBUG("[E2SM] RIC Control ack value: NACK");
                         break;
                     }
+                    */
                     default: {
                         NS_LOG_DEBUG("[E2SM] RIC Control ack value unknown");
                         break;
